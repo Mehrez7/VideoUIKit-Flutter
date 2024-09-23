@@ -4,17 +4,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
-import 'package:agora_rtm/agora_rtm.dart';
 import 'package:agora_uikit/controllers/rtc_event_handlers.dart';
 import 'package:agora_uikit/controllers/rtc_token_handler.dart';
-import 'package:agora_uikit/controllers/rtm_client_event_handler.dart';
-import 'package:agora_uikit/controllers/rtm_token_handler.dart';
 import 'package:agora_uikit/models/agora_channel_data.dart';
 import 'package:agora_uikit/models/agora_connection_data.dart';
 import 'package:agora_uikit/models/agora_rtc_event_handlers.dart';
-import 'package:agora_uikit/models/agora_rtm_channel_event_handler.dart';
-import 'package:agora_uikit/models/agora_rtm_client_event_handler.dart';
-import 'package:agora_uikit/models/agora_rtm_mute_request.dart';
 import 'package:agora_uikit/models/agora_settings.dart';
 import 'package:agora_uikit/models/agora_user.dart';
 import 'package:agora_uikit/src/enums.dart';
@@ -27,8 +21,6 @@ class SessionController extends ValueNotifier<AgoraSettings> {
       : super(
           AgoraSettings(
             engine: createAgoraRtcEngine(),
-            agoraRtmChannel: null,
-            agoraRtmClient: null,
             users: [],
             mainAgoraUser: AgoraUser(
               uid: 0,
@@ -53,21 +45,6 @@ class SessionController extends ValueNotifier<AgoraSettings> {
           ),
         );
 
-  /// Function to initialize the Agora RTM client.
-  Future<void> initializeRtm(
-      AgoraRtmClientEventHandler agoraRtmClientEventHandler) async {
-    value = value.copyWith(
-      agoraRtmClient: await AgoraRtmClient.createInstance(
-        value.connectionData!.appId,
-      ),
-    );
-    if (value.agoraRtmClient != null) {
-      addListener(() {
-        createRtmClientEvents(agoraRtmClientEventHandler);
-      });
-    }
-  }
-
   /// Function to initialize the Agora RTC engine.
   Future<void> initializeEngine(
       {required AgoraConnectionData agoraConnectionData}) async {
@@ -78,10 +55,6 @@ class SessionController extends ValueNotifier<AgoraSettings> {
     log("SDK initialized: ${value.engine}", level: Level.error.value);
     // Getting SDK versions and assigning them
     SDKBuildInfo? rtcVersion = await value.engine?.getVersion();
-    AgoraVersions.staticRTM = await AgoraRtmClient.getSdkVersion();
-    if (rtcVersion?.version.toString() != null) {
-      AgoraVersions.staticRTC = rtcVersion!.version.toString();
-    }
   }
 
   Future<void> askForUserCameraAndMicPermission() async {
@@ -90,24 +63,13 @@ class SessionController extends ValueNotifier<AgoraSettings> {
 
   /// Function to trigger all the AgoraRtcEventHandlers.
   void createEvents(
-    AgoraRtmChannelEventHandler agoraRtmChannelEventHandler,
     AgoraRtcEventHandlers agoraEventHandlers,
   ) async {
     value.engine?.registerEventHandler(
       await rtcEngineEventHandler(
         agoraEventHandlers,
-        agoraRtmChannelEventHandler,
         this,
       ),
-    );
-  }
-
-  void createRtmClientEvents(
-      AgoraRtmClientEventHandler agoraRtmClientEventHandler) {
-    rtmClientEventHandler(
-      agoraRtmClient: value.agoraRtmClient!,
-      agoraRtmClientEventHandler: agoraRtmClientEventHandler,
-      sessionController: this,
     );
   }
 
@@ -184,12 +146,6 @@ class SessionController extends ValueNotifier<AgoraSettings> {
         uid: value.connectionData!.uid,
         sessionController: this,
       );
-      if (value.connectionData!.rtmEnabled) {
-        await getRtmToken(
-          tokenUrl: value.connectionData!.tokenUrl,
-          sessionController: this,
-        );
-      }
     }
 
     await value.engine?.startPreview();

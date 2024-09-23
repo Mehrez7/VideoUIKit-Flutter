@@ -8,12 +8,6 @@
       "languageVersion": "2.17"
     },
     {
-      "name": "agora_rtm",
-      "rootUri": "file:///Users/mohamedmehrez/.pub-cache/hosted/pub.dev/agora_rtm-1.5.9",
-      "packageUri": "lib/",
-      "languageVersion": "2.14"
-    },
-    {
       "name": "async",
       "rootUri": "file:///Users/mohamedmehrez/.pub-cache/hosted/pub.dev/async-2.10.0",
       "packageUri": "lib/",
@@ -230,7 +224,7 @@
       "languageVersion": "2.19"
     }
   ],
-  "generated": "2024-09-22T18:40:58.204618Z",
+  "generated": "2024-09-23T07:50:49.077317Z",
   "generator": "pub",
   "generatorVersion": "2.19.6"
 }
